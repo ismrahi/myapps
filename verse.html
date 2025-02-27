@@ -513,24 +513,28 @@
 		});
 
 
-		document.getElementById("next").addEventListener("click", function () {
-			autoPlayEnabled = false;
-			updateAutoPlayButton();
-			stopCurrentAudio();
-			if (ayahIndex < currentSurah.length - 1) {
-				ayahIndex++;
-				displayAyah();
+		document.getElementById("prev").addEventListener("click", function () {
+			if (autoPlayEnabled) {
+				autoPlayEnabled = false;
+				updateAutoPlayButton();
+				stopCurrentAudio();
+				if (ayahIndex > 0) {
+					//ayahIndex--;
+					displayAyah();
+				}
 			}
 		});
 
-
-		document.getElementById("suraSelect").addEventListener("change", function () {
-			autoPlayEnabled = false;
-			updateAutoPlayButton();
-			stopCurrentAudio(); // Stop audio before changing surah
-			sura = this.value;
-			ayahIndex = 0;
-			loadSurah();
+		document.getElementById("next").addEventListener("click", function () {
+			if (autoPlayEnabled) {
+				autoPlayEnabled = false;
+				updateAutoPlayButton();
+				stopCurrentAudio();
+				if (ayahIndex < currentSurah.length - 1) {
+					//ayahIndex++;
+					displayAyah();
+				}
+			}
 		});
 
 		
