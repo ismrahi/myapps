@@ -536,19 +536,6 @@ header {
 		}
 
 
-
-
-		document.getElementById("prev").addEventListener("click", function () {
-			autoPlayEnabled = false;
-			updateAutoPlayButton();
-			stopCurrentAudio();
-			if (ayahIndex > 0) {
-				ayahIndex--;
-				displayAyah();
-			}
-		});
-
-
 		document.getElementById("prev").addEventListener("click", function () {
 			if (autoPlayEnabled) {
 				autoPlayEnabled = false;
