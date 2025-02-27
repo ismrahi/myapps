@@ -17,23 +17,36 @@
             min-height: 100vh; 
             margin: 0; 
         }
-        header {
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-       .header-title {
-            color: white;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            margin: 0;
-            font-size: 1.8rem;
-        }
-	.header-subtitle {
-		color: rgba(255, 255, 255, 0.8);
-		font-size: 0.9rem;
-		margin-top: 0.3rem;
-		font-weight: 400;
-	}
+header {
+    padding: 1rem 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #212529; /* Bootstrap dark */
+    color: white;
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.header-title {
+    color: white;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.header-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
+    font-weight: 400;
+}
+
 	footer {
 		background-color: #343a40;
 		color: white;
@@ -144,11 +157,16 @@
     </style>
 </head>
 <body>
-    <header class="bg-dark text-white d-flex justify-content-between align-items-center">
-        <h1 class="header-title">🕌 Quran Verse</h1>
-        <p class="header-subtitle">Enhance your memorization, ayah by ayah</p>
-        <button id="settingsBtn" class="btn btn-light me-3"><i class="bi bi-gear"></i></button>
-    </header>
+<header class="bg-dark text-white d-flex align-items-center justify-content-between">
+    <div class="header-text">
+	<h1 class="header-title">🕌 Quran Verse</h1>
+	<p class="header-subtitle">Enhance your memorization, ayah by ayah</p>
+    </div>
+    <button id="settingsBtn" class="btn btn-light me-3">
+	<i class="bi bi-gear"></i>
+    </button>
+</header>
+
 
 	<div class="container mt-3 d-flex align-items-center justify-content-center">
 		<label for="suraSelect" class="form-label mb-0 me-1 fw-bold">Select Surah</label>
