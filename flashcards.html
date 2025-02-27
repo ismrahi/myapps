@@ -220,92 +220,123 @@
         </div>
     </footer>
 
-    <script>
-        let currentSurahData = [];
-        let currentIndex = 0;
+<script>
+    let currentSurahData = [];
+    let currentIndex = 0;
+    let currentSura = 1; // Default to Surah 1 (Al-Fatiha)
 
-        // Load Surah list
-        function loadSurahList() {
-            fetch('https://api.alquran.cloud/v1/surah')
-                .then(response => response.json())
-                .then(data => {
-                    const surahSelect = document.getElementById('surahSelect');
-                    data.data.forEach(surah => {
-                        const option = document.createElement('option');
-                        option.value = surah.number;
-                        option.textContent = `${surah.number}. ${surah.englishName} (${surah.englishNameTranslation})`;
-                        surahSelect.appendChild(option);
-                    });
-                    loadSurah();
+    // Load Surah list
+    function loadSurahList() {
+        fetch('https://api.alquran.cloud/v1/surah')
+            .then(response => response.json())
+            .then(data => {
+                const surahSelect = document.getElementById('surahSelect');
+                
+                data.data.forEach(surah => {
+                    const option = document.createElement('option');
+                    option.value = surah.number;
+                    option.textContent = `${surah.number}. ${surah.englishName} (${surah.englishNameTranslation})`;
+                    surahSelect.appendChild(option);
                 });
-        }
 
-        // Load selected Surah
-        function loadSurah() {
-            const surahNumber = document.getElementById('surahSelect').value;
-            fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/editions/quran-wordbyword-2`)
-                .then(response => response.json())
-                .then(data => {
-                    currentSurahData = data.data[0].ayahs.flatMap(ayah => 
-                        ayah.text && ayah.text.startsWith("[") ? JSON.parse(ayah.text) : []
-                    );
-                    currentIndex = 0;
-                    updateDisplay();
-                });
-        }
+                // Load last saved surah and index from localStorage
+                loadLastSession();
+            });
+    }
 
-        // Update all display elements
-        function updateDisplay() {
-            const wordData = currentSurahData[currentIndex];
-            document.getElementById('arabicText').textContent = wordData.word_arabic;
-            document.getElementById('transliteration').textContent = wordData.word_transliteration;
-            document.getElementById('translation').textContent = wordData.word_translation;
-            updateProgress();
-            updatePositionIndicator();
-        }
+    // Load selected Surah
+    function loadSurah() {
+        const surahNumber = document.getElementById('surahSelect').value;
+        currentSura = surahNumber;
+        
+        fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/editions/quran-wordbyword-2`)
+            .then(response => response.json())
+            .then(data => {
+                currentSurahData = data.data[0].ayahs.flatMap(ayah => 
+                    ayah.text && ayah.text.startsWith("[") ? JSON.parse(ayah.text) : []
+                );
 
-        function updateProgress() {
-            const progress = ((currentIndex + 1) / currentSurahData.length) * 100;
-            document.getElementById('progressBar').style.width = `${progress}%`;
-        }
+                // Check if the user has a saved index for this surah
+                const savedIndex = localStorage.getItem(`surah_${currentSura}_index`);
+                currentIndex = savedIndex ? parseInt(savedIndex, 10) : 0;
 
-        function updatePositionIndicator() {
-            document.getElementById('positionIndicator').textContent = 
-                `${currentIndex + 1} / ${currentSurahData.length}`;
-        }
-
-        // Navigation controls
-        function prevWord() {
-            if (currentIndex > 0) {
-                currentIndex--;
                 updateDisplay();
-            }
+                saveProgress(); // Save progress immediately
+            });
+    }
+
+    // Update all display elements
+    function updateDisplay() {
+        if (currentSurahData.length === 0) return;
+
+        const wordData = currentSurahData[currentIndex];
+        document.getElementById('arabicText').textContent = wordData.word_arabic;
+        document.getElementById('transliteration').textContent = wordData.word_transliteration;
+        document.getElementById('translation').textContent = wordData.word_translation;
+
+        updateProgress();
+        updatePositionIndicator();
+        saveProgress(); // Save progress when displaying a new word
+    }
+
+    function updateProgress() {
+        const progress = ((currentIndex + 1) / currentSurahData.length) * 100;
+        document.getElementById('progressBar').style.width = `${progress}%`;
+    }
+
+    function updatePositionIndicator() {
+        document.getElementById('positionIndicator').textContent = 
+            `${currentIndex + 1} / ${currentSurahData.length}`;
+    }
+
+    // Navigation controls
+    function prevWord() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateDisplay();
         }
+    }
 
-        function nextWord() {
-            if (currentIndex < currentSurahData.length - 1) {
-                currentIndex++;
-                updateDisplay();
-            }
+    function nextWord() {
+        if (currentIndex < currentSurahData.length - 1) {
+            currentIndex++;
+            updateDisplay();
         }
+    }
 
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', loadSurahList);
+    // Save progress in localStorage
+    function saveProgress() {
+        localStorage.setItem('currentSura', currentSura);
+        localStorage.setItem(`surah_${currentSura}_index`, currentIndex);
+    }
 
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') prevWord();
-            if (e.key === 'ArrowRight') nextWord();
-        });
+    // Load last saved session
+    function loadLastSession() {
+        const savedSurah = localStorage.getItem('currentSura');
+        if (savedSurah) {
+            currentSura = savedSurah;
+            document.getElementById('surahSelect').value = savedSurah;
+        }
+        loadSurah();
+    }
 
-        // Swipe navigation for mobile
-        let touchStartX = 0;
-        document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
-        document.addEventListener('touchend', e => {
-            const touchEndX = e.changedTouches[0].clientX;
-            const diff = touchStartX - touchEndX;
-            if (Math.abs(diff) > 50) diff > 0 ? nextWord() : prevWord();
-        });
-    </script>
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', loadSurahList);
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') prevWord();
+        if (e.key === 'ArrowRight') nextWord();
+    });
+
+    // Swipe navigation for mobile
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+    document.addEventListener('touchend', e => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) diff > 0 ? nextWord() : prevWord();
+    });
+</script>
 </body>
 </html>
