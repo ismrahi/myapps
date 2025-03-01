@@ -175,6 +175,8 @@ header {
 	<div class="container mt-3 d-flex align-items-center justify-content-center">
 		<label for="suraSelect" class="form-label mb-0 me-1 fw-bold">Select Surah</label>
 		<select id="suraSelect" class="form-select w-50"></select>
+		<label for="ayahSelect" class="form-label mb-0 ms-3 me-1 fw-bold">Go to Ayah</label>
+        <select id="ayahSelect" class="form-select w-25"></select>
 	</div>
 	   
     <div class="flashcard-container">
@@ -257,11 +259,11 @@ header {
 
 
     <script>
-        const API_URL = "https://api.alquran.cloud/v1/surah";
-        let sura = parseInt(localStorage.getItem('currentSura')) || 1;
-        let ayahIndex = parseInt(localStorage.getItem('currentAyah')) || 0;
-        let currentSurah = [];
-        let currentAudio = null;
+	const API_URL = "https://api.alquran.cloud/v1/surah";
+	let sura = parseInt(localStorage.getItem('currentSura')) || 1;
+	let ayahIndex = parseInt(localStorage.getItem('currentAyah')) || 0;
+	let currentSurah = [];
+	let currentAudio = null;
 	let audioContext = null;
 	let currentSource = null;
 	let autoPlayEnabled = false;
@@ -340,6 +342,7 @@ header {
 
                     ayahIndex = Math.min(ayahIndex, currentSurah.length - 1);
                     displayAyah();
+					updateAyahDropdown();
                 }
             }).fail(() => alert("Error fetching Surah data"));
         }
@@ -404,6 +407,25 @@ header {
 
             }
         }
+		
+		function updateAyahDropdown() {
+			$('#ayahSelect').empty();
+			for (let i = 1; i <= currentSurah.length; i++) {
+				$('#ayahSelect').append(`<option value="${i}">${i}</option>`);
+			}
+			$('#ayahSelect').val(ayahIndex + 1);
+		}
+		
+		$('#ayahSelect').change(function() {
+			ayahIndex = parseInt($(this).val()) - 1;
+			localStorage.setItem('currentAyah', ayahIndex);
+			displayAyah();
+			if (autoPlayEnabled) {
+				autoPlayEnabled = false;
+				updateAutoPlayButton();
+				stopCurrentAudio();
+			}
+		});
 
         $(document).ready(() => {
             loadEditions();
@@ -429,6 +451,11 @@ header {
                 $('#settingsModal').modal('hide');
                 loadSurah();
 				applyFontSize(); 
+				
+				autoPlayEnabled = false;
+				updateAutoPlayButton();
+				stopCurrentAudio(); // Stop any currently playing audio
+		
             });
 
             $('#suraSelect').change(function() {
@@ -446,6 +473,11 @@ header {
                     displayAyah();
                 }
                 $('#flashcard').removeClass('flipped');
+				if (autoPlayEnabled) {
+					autoPlayEnabled = false;
+					updateAutoPlayButton();
+					stopCurrentAudio();
+				}
             });
 
             $('#next').click(() => {
@@ -454,6 +486,11 @@ header {
                     localStorage.setItem('currentAyah', ayahIndex);
                     displayAyah();
                 }
+				if (autoPlayEnabled) {
+					autoPlayEnabled = false;
+					updateAutoPlayButton();
+					stopCurrentAudio();
+				}
                 $('#flashcard').removeClass('flipped');
             });
 
@@ -470,7 +507,6 @@ header {
         });
     </script>
     <script>
-
 		document.getElementById("autoPlayToggle").addEventListener("click", function () {
 		    autoPlayEnabled = !autoPlayEnabled;
 		    updateAutoPlayButton();
@@ -488,8 +524,6 @@ header {
 			btn.classList.toggle("btn-danger", autoPlayEnabled);
 			btn.classList.toggle("btn-success", !autoPlayEnabled);
 		}
-
-
 
 		function playAndAdvance() {
 			if (!autoPlayEnabled || ayahIndex >= currentSurah.length) {
@@ -536,36 +570,6 @@ header {
 		}
 
 
-		document.getElementById("prev").addEventListener("click", function () {
-			if (autoPlayEnabled) {
-				autoPlayEnabled = false;
-				updateAutoPlayButton();
-				stopCurrentAudio();
-				if (ayahIndex > 0) {
-					//ayahIndex--;
-					displayAyah();
-				}
-			}
-		});
-
-		document.getElementById("next").addEventListener("click", function () {
-			if (autoPlayEnabled) {
-				autoPlayEnabled = false;
-				updateAutoPlayButton();
-				stopCurrentAudio();
-				if (ayahIndex < currentSurah.length - 1) {
-					//ayahIndex++;
-					displayAyah();
-				}
-			}
-		});
-
-		
-		document.getElementById("saveSettings").addEventListener("click", function () {
-        autoPlayEnabled = false;
-        updateAutoPlayButton();
-		stopCurrentAudio(); // Stop any currently playing audio
-		});
 	
 		function stopCurrentAudio() {
 			if (currentSource) {
@@ -577,6 +581,21 @@ header {
 				currentSource = null; // ✅ Clear the reference
 			}
 		}
+		
+		// Keyboard navigation
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'ArrowLeft') $('#prev').click();
+			if (e.key === 'ArrowRight') $('#next').click();
+		});
+
+		// Swipe navigation for mobile
+		let touchStartX = 0;
+		document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+		document.addEventListener('touchend', e => {
+			const touchEndX = e.changedTouches[0].clientX;
+			const diff = touchStartX - touchEndX;
+			if (Math.abs(diff) > 50) diff > 0 ? $('#next').click() : $('#prev').click();
+		});
 
 
 	</script>
